@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Billing & Software Cost Tracker – v10</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f6fa;--card:#fff;--ink:#1c2433;--mut:#6b7587;--line:#e3e8f0;--blue:#2f6fed;--teal:#12a594;--amber:#e8a317;--red:#d6455d;--green:#1f9d62}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141c;--card:#192030;--ink:#e8edf6;--mut:#93a0b5;--line:#2a3447;--blue:#6b9bff;--teal:#35c9b6;--amber:#f0b73c;--red:#ff7088;--green:#4cc88a}}
+:root[data-theme="dark"]{--bg:#10141c;--card:#192030;--ink:#e8edf6;--mut:#93a0b5;--line:#2a3447;--blue:#6b9bff;--teal:#35c9b6;--amber:#f0b73c;--red:#ff7088;--green:#4cc88a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:1100px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0}.sub{color:var(--mut);font-size:13px;margin:2px 0 14px}h2{font-size:15px;margin:0 0 12px}
+.g{display:grid;gap:14px}.k{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.two{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-top:14px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.kv{font-size:27px;font-weight:700;margin:4px 0 2px}.kn{font-size:12px;color:var(--mut)}
+.row{display:grid;grid-template-columns:120px 1fr 64px;gap:10px;align-items:center;margin:10px 0;font-size:13px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:2px 0}.bar i{display:block;height:100%;border-radius:5px}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;color:#fff}
+.lg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:8px}.lg b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.al{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}.al:last-child{border:0}
+.neg{color:var(--red)}.pos{color:var(--green)}
+.tb{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+button,input,.up{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+button.on{background:var(--blue);border-color:var(--blue);color:#fff}.up{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.dl{border-color:var(--teal);color:var(--teal);font-weight:600}.dl:disabled{opacity:.4;cursor:default}
+.up.sec{background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:500}
+details>summary{cursor:pointer;font-weight:700;font-size:15px}
+.eg{overflow:auto;max-height:540px;margin-top:6px}.eg table{min-width:940px}.eg th{position:sticky;top:0;background:var(--card);z-index:1;cursor:default}
+.eg input,.eg select{width:100%;padding:5px 7px;border-radius:6px;font-size:13px;min-width:0;flex:none}.eg input.num{text-align:right}.eg td:first-child{min-width:240px}
+.lk{border-color:var(--amber);font-weight:600}.lk.open{border-color:var(--green);color:var(--green)}.lkbox{padding:10px;border:1px dashed var(--amber);border-radius:10px;margin:0 0 10px}
+.tl{margin:6px 0 0 8px;border-left:2px solid var(--line);padding-left:20px}.tl .it{position:relative;padding:0 0 18px}.tl .it::before{content:"";position:absolute;left:-27px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--dot,var(--red));box-shadow:0 0 0 3px var(--card)}
+.tl .dt{font-size:12px;color:var(--mut)}.tl .ti{font-weight:700;margin:2px 0}.tl .ds{font-size:13px;color:var(--mut);overflow-wrap:anywhere}.tl .rs{font-size:12px;font-style:italic;color:var(--mut);margin-top:2px}.tl .by{font-size:12px;font-weight:700;margin-top:4px}
+.pm td,.pm th{text-align:center}.pm td:first-child,.pm th:first-child{text-align:left}
+#portal{display:none}body.locked #portal{display:flex;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:var(--bg);padding:16px;overflow:auto}body.locked .w{display:none}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 26px;max-width:410px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.08)}.pc h1{font-size:20px;margin:6px 0 2px}.pl{font-size:34px}
+.pid{display:flex;gap:12px;align-items:center;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px}.av{width:42px;height:42px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}.pn{font-weight:700}
+.pm2{background:rgba(232,163,23,.16);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:12px}
+.pm input[type=checkbox]{width:18px;height:18px;padding:0;margin:0;cursor:pointer;accent-color:var(--blue);vertical-align:middle}.pm input[type=checkbox]:disabled{cursor:not-allowed;opacity:.65}
+.gh td[data-t]{text-align:right!important}.gh td.gt{cursor:pointer;user-select:none}
+.eg tfoot td{position:sticky;bottom:0;background:var(--card);font-weight:700;border-top:2px solid var(--line);text-align:right}.eg tfoot td:first-child{text-align:left}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.dup{border-color:var(--red)!important;background:rgba(214,69,93,.10)!important}.del{padding:3px 9px;color:var(--red)}
+select{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}#msel{font-weight:600;border-color:var(--blue);background:var(--blue);color:#fff;padding:7px 12px}
+.eg th:nth-child(2),.eg td:nth-child(2){min-width:108px}.eg select:disabled{opacity:1;background:var(--bg);cursor:not-allowed}
+.gh td{background:var(--bg);font-weight:700;text-align:left!important;padding:8px 10px;border-bottom:1px solid var(--line)}select option{background:var(--card);color:var(--ink)}
+input[type=text]{flex:1;min-width:150px;cursor:text}input[type=file]{display:none}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;min-width:640px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left;white-space:normal;min-width:200px}
+th{color:var(--mut);font-weight:600;cursor:pointer}
+.tag{display:inline-block;margin-top:5px;padding:2px 9px;border-radius:99px;font-size:10px;font-weight:600;background:rgba(139,92,246,.16);color:#6032c8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tag{color:#cdbbff}}
+:root[data-theme="dark"] .tag{color:#cdbbff}
+tr.pend td{background:rgba(139,92,246,.06);padding-top:11px;padding-bottom:11px}tr.pend td:first-child{box-shadow:inset 3px 0 0 #8b5cf6}
+.msg{font-size:13px;margin:8px 0;color:var(--mut)}.note{font-size:12px;color:var(--mut);margin-top:14px}
+.tr{display:flex;gap:10px;align-items:flex-end;height:150px;margin-top:6px}.tr>div{flex:1;text-align:center;font-size:12px;min-width:44px}
+.tr .p{display:flex;gap:3px;align-items:flex-end;height:110px;justify-content:center}.tr .p i{width:16px;border-radius:4px 4px 0 0;display:block}
+</style></head><body><div id="portal"></div><div class="w">
+<h1>Billing &amp; Software Cost Tracker <span class="pill" style="background:var(--teal);vertical-align:3px">v10</span></h1>
+<div class="sub">Hamly Business Solutions India (P) Ltd · Client invoice vs software cost · Amounts in $</div>
+<div class="c"><div class="tb"><button class="up" id="nmb">＋ New month</button><label class="up sec" id="upl">⬆ Import Excel (optional)<input type="file" id="f" accept=".xlsx,.xls" multiple></label><span id="ms" class="tb" style="margin:0"></span><span class="tb" style="margin:0 0 0 auto"><button class="dl" id="so" title="Sign out of the dashboard">⎋ Sign out</button><button class="dl" id="aud" title="Go to the audit trail">🧾 Audit trail</button><button class="dl" id="rf" title="Reload the latest saved data">↻ Refresh</button><button class="dl" id="xl" title="Download this month as Excel">⬇ Excel</button><button class="dl" id="pf" title="Download this month as PDF">⬇ PDF</button></span></div>
+<div class="msg" id="msg">Create a month, then type each client’s invoice and software charges in the entry sheet below. Everything saves automatically.</div><div id="nm"></div></div>
+<div class="msg" id="who" style="margin:-6px 0 8px"></div>
+<div class="c" id="entry" style="margin-bottom:14px;display:none"></div>
+<div class="g k" id="kpi" style="margin-top:14px"></div>
+<div class="c" style="margin-top:14px"><h2>Month-by-month trend</h2><div id="trend"></div></div>
+<div class="g two">
+<div class="c"><h2>Invoice vs software cost by entity</h2><div id="ent"></div><div class="lg"><span><b style="background:var(--blue)"></b>Invoice raised</span><span><b style="background:var(--amber)"></b>Software cost</span></div></div>
+<div class="c"><h2>Where the software cost goes</h2><div id="mix" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"></div></div></div>
+<div class="g two">
+<div class="c"><h2>⚠ Loss-making clients</h2><div class="kn" style="margin:-6px 0 10px">Software cost is more than the invoice, or the invoice is not created yet</div><div id="loss"></div></div>
+<div class="c"><h2>Highest cost as % of invoice <span class="kn">(above 15% threshold)</span></h2><div id="hi"></div></div></div>
+<div class="c" style="margin-top:14px"><h2>Top 10 clients by software cost</h2><div id="top"></div></div>
+<div class="c" style="margin-top:14px"><h2>All clients</h2><div class="tb" id="tb"></div><div class="sc"><table><thead id="th"></thead><tbody id="tr"></tbody></table></div></div>
+<div class="c" id="audit" style="margin-top:14px"></div>
+<div class="c" style="margin-top:14px"><details><summary>🔐 Roles &amp; permissions <span class="kn" id="myrole"></span></summary>
+<div id="rolesbox" style="margin-top:10px"></div></details></div>
+<div class="note">Cost % = software cost ÷ invoice. Net income = invoice − software cost. Clients with no invoice and no cost are hidden. Clients with software cost but no invoice yet are included in the loss-making list and marked “Invoice yet to be sent”. In the client table their cost % is shown as 100%. A client such as “… (MLWP)” with no invoice is merged into its base client “… (MLW)”. <b>Shared data:</b> everyone you invite sees the same months. Editors upload and remove months; viewers see the dashboards only.</div>
+</div>
+<script>
+(()=>{
+const E={NRS:"Novus Revenue Solutions",FBS:"Fraction Billing Services",TLK:"TLK Medical Group",HBS:"Hamly (HBS)",Navira:"Navira Medical Billing"};
+const MN=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+let M={},cur="",F="All",FL="All",FH="All",SH="pct",AH=-1,Q="",S="inv",A=-1,del="";
+const $=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{maximumFractionDigits:0});
+const $2=n=>(n<0?"-":"")+"$"+(Math.abs(n)+1e-7).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const P=x=>(x*100).toFixed(1)+"%";
+const col=p=>p>=.2?"var(--red)":p>=.07?"var(--amber)":"var(--green)";
+const sum=(a,k)=>a.reduce((s,x)=>s+x[k],0);
+const $e=id=>document.getElementById(id);
+const key=l=>{const m=l.split("-");return (+m[1])*12+MN.indexOf(m[0].toLowerCase())};
+const label=(m,y)=>{m=m.slice(0,3);y=String(y).slice(-2);return m[0].toUpperCase()+m.slice(1).toLowerCase()+"-"+y};
+let DB=null,DL=null,USER=null,CAN=true,ROLE="owner",ME={name:"",id:null,isOwner:false},LOCAL=false;
+const RL={owner:"Owner",manager:"Manager",entry:"Viewer",viewer:"Viewer"};
+const roleLabel=()=>ROLE=="viewer"?"Viewer (view only)":ROLE=="entry"?"Viewer (with data entry)":RL[ROLE];
+const ACTS=[["entry","Open “Enter / edit client details”, add clients, enter and edit amounts"],["rename","Rename an existing client"],["del","Delete a client"],["entity","Change a client’s entity (needs the lock password)"],["newmonth","Create a new month"],["import","Import an Excel file"],["remove","Remove a month"]];
+const DEF={viewer:["entry"],manager:ACTS.map(a=>a[0])},NEEDS_ENTRY=["rename","del","entity"];
+let PS={viewer:new Set(DEF.viewer),manager:new Set(DEF.manager)},RD=null,RDIRTY=false;
+const can=a=>(LOCAL||ROLE=="owner")?true:a=="lockpw"?false:ROLE=="manager"?PS.manager.has(a):ROLE=="entry"?PS.viewer.has(a):false;
+const pack=(d)=>({rows:JSON.stringify(d.rows),idle:d.idle||0,by:ME.id||null,at:new Date().toISOString()});
+const normEnt=e=>{const s=String(e||"").trim(),l=s.toLowerCase();return !s?s:/tlk/.test(l)?"TLK":/nrs|novus/.test(l)?"NRS":/hbs|hamly/.test(l)?"HBS":/fbs|fraction/.test(l)?"FBS":/navira/.test(l)?"Navira":s};
+const unpack=(d)=>{const rows=JSON.parse(d.rows||"[]");rows.forEach(r=>{r.o=r[0];r[1]=normEnt(r[1])});return{rows,idle:d.idle||0,by:d.by||null,at:d.at||null}};
+async function saveMonth(lb,d){d.by=ME.id;d.at=new Date().toISOString();M[lb]=d;
+ if(DB){await DB.doc("months/"+lb).set(pack(d))}else{try{localStorage.setItem("hbs_months",JSON.stringify(M))}catch(e){}}rebase(lb);}
+async function removeMonth(lb){delete M[lb];
+ if(DB){await DB.doc("months/"+lb).delete()}else{try{localStorage.setItem("hbs_months",JSON.stringify(M))}catch(e){}}}
+const remember=()=>{try{localStorage.setItem("hbs_cur",cur)}catch(e){}};
+async function init(){
+ lockUI(true);drawPortal("checking");
+ try{cur=localStorage.getItem("hbs_cur")||""}catch(e){}
+ try{BRK=localStorage.getItem("hbs_brk")==="1"}catch(e){}
+ try{if(typeof claude!="undefined"){USER=await claude.use("user");DB=await claude.use("db")}}catch(e){}
+ try{if(typeof claude!="undefined")DL=await claude.use("downloads")}catch(e){}
+ if(USER){try{const m=await USER.me();ME={name:m.name,id:m.id,isOwner:m.isOwner};let w=null;try{w=await USER.can("data.write")}catch(x){}ROLE=m.isOwner?"owner":m.canEdit?"manager":(w!==false?"entry":"viewer");CAN=ROLE!="viewer"}catch(e){ROLE="viewer";CAN=false}}
+ if(typeof claude!="undefined"&&!USER){ROLE="viewer";CAN=false}
+ {const ss=(()=>{try{return JSON.parse(sessionStorage.getItem("hbs_sess")||"null")}catch(e){return null}})();
+  if(ss&&ss.id==(ME.id||"local")&&Date.now()-ss.at<IDLE_MS&&!(typeof claude!="undefined"&&!USER)){SESS=true;lastAct=Date.now();lockUI(false)}else drawPortal("ready")}
+ await loadLock();
+ if(DB){DB.collection("settings").onSnapshot(s=>{const d=s.docs.find(x=>x.id=="perms");SETD=d&&d.exists?d.data():null;applyPerms();if(!RDIRTY)resetDraft();drawRoles();if(SESS)draw()},()=>{});DB.collection("audit").onSnapshot(s=>{const a={};s.docs.forEach(d=>{if(d.exists)a[d.id]=d.data()});AUDM=a;renderAuditList();drawAudit()},()=>{})}
+ if(DB){
+  const first=new Promise(r=>{
+   DB.collection("months").onSnapshot(s=>{const n={};s.docs.forEach(d=>{if(d.exists)try{n[d.id]=unpack(d.data())}catch(e){}});const busy=Date.now()-SK<4000,keep=busy&&cur?M[cur]:null;setBase(n,keep?cur:null);M=n;if(keep)M[cur]=keep;
+    const k=Object.keys(M).sort((a,b)=>key(a)-key(b));if(!M[cur])cur=k[k.length-1]||"";draw(busy);r()},
+   e=>{$e("msg").innerHTML='<span class="neg">Could not load shared data. Please sign in and reload.</span>';r()})});
+  await first;
+ }else{LOCAL=true;try{const s=localStorage.getItem("hbs_months");if(s)M=JSON.parse(s);Object.values(M).forEach(m=>m.rows.forEach(r=>{r[1]=normEnt(r[1])}))}catch(e){}try{const p=localStorage.getItem("hbs_perms");if(p){SETD=JSON.parse(p);applyPerms();resetDraft()}}catch(e){}setBase(M);try{const a=localStorage.getItem("hbs_audit");if(a)AUDM=JSON.parse(a)}catch(e){}
+  const k=Object.keys(M).sort((a,b)=>key(a)-key(b));cur=k[k.length-1]||"";draw()}
+}
+async function who(l){const el=$e("who");const role=LOCAL?"Local mode (this browser only)":roleLabel();
+ let s=(ME.name?"Signed in as <b>"+ME.name.replace(/[<>&]/g,"")+"</b> · ":"")+role;
+ const d=M[l];if(d&&d.at){let nm="";try{if(d.by&&USER){const p=await USER.profiles([d.by]);nm=(p[d.by]&&p[d.by].name)||""}}catch(e){}
+  s+=" · "+l+" last updated "+new Date(d.at).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})+(nm?" by "+nm.replace(/[<>&]/g,""):"")}
+ el.innerHTML=s}
+const calc=rows=>rows.filter(r=>String(r[0]).trim()&&(r[2]||r[3]||r[4]||r[5])).map(r=>{const c=r[3]+r[4]+r[5];return{n:r[0],e:r[1],inv:r[2],oa:r[3],cmd:r[4],pld:r[5],cost:c,net:r[2]-c,pct:r[2]>0?c/r[2]:(c>0?1:0)}});
+const tot=l=>{const R=calc(M[l].rows);return{inv:sum(R,"inv"),cost:sum(R,"cost")}};
+// ---------- Excel import ----------
+async function ingest(file){const SK2=savedKN();
+ const wb=XLSX.read(await file.arrayBuffer(),{type:"array"});let done=0;
+ for(const sn of wb.SheetNames){
+  const a=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:null});
+  const h=a.findIndex(r=>r.some(c=>String(c||"").trim().toLowerCase()=="client name"));if(h<0)continue;
+  const H=a[h].map(c=>String(c||"").trim().toLowerCase()),ix=k=>H.findIndex(x=>x.startsWith(k));
+  const ci=ix("client name"),ei=ix("entity"),ii=ix("invoice"),oi=ix("oa"),mi=ix("cmd"),pi=ix("pld");
+  if([ei,ii,oi,mi,pi].some(i=>i<0))continue;
+  const head=a.slice(0,h).map(r=>r.filter(Boolean).join(" ")).join(" ");
+  let m=head.match(/report\s*-\s*([A-Za-z]{3})[a-z]*[-\s]*(\d{2,4})/i)||file.name.match(/([A-Za-z]{3})[a-z]*[-_ ]*(\d{2,4})/);
+  if(!m||MN.indexOf(m[1].toLowerCase())<0)continue;
+  const lb=label(m[1],m[2]),num=x=>typeof x=="number"?x:0;let rows=[],idle=0;
+  for(const r of a.slice(h+1)){
+   const n=r[ci],e=r[ei];if(typeof n!="string"||!n.trim()||typeof e!="string"||!e.trim())continue;
+   if(/^total/i.test(n.trim()))continue;
+   let en=e.trim();en=normEnt(en);{const k=SK2[n.trim().toLowerCase()];if(k&&k!==en&&!isUnlocked()){en=k;MIS++}}
+   rows.push([n.trim(),en,num(r[ii]),num(r[oi]),num(r[mi]),num(r[pi])]);}
+  const out=[];
+  for(const r of rows){const c=r[0].match(/\(([A-Za-z]+)P\)\s*$/);
+   const base=c&&r[2]==0&&rows.find(x=>x!==r&&x[0].endsWith("("+c[1]+")"));
+   if(base){base[3]+=r[3];base[4]+=r[4];base[5]+=r[5];}}
+  for(const r of rows){const c=r[0].match(/\(([A-Za-z]+)P\)\s*$/);
+   if(c&&r[2]==0&&rows.some(x=>x!==r&&x[0].endsWith("("+c[1]+")")))continue;
+   if(r[2]+r[3]+r[4]+r[5]==0){idle++;continue}
+   out.push(r.map((v,i)=>i>1?Math.round(v*1000)/1000:v));}
+  await saveMonth(lb,{rows:out,idle});{const ti=out.reduce((s,r)=>s+r[2],0),tc=out.reduce((s,r)=>s+r[3]+r[4]+r[5],0);try{await logAudit({a:"Excel imported",month:lb,t:`${out.length} clients loaded from “${file.name}” · Invoice ${$(ti)} · Software cost ${$(tc)}`})}catch(x){}}cur=lb;remember();done++;
+ }
+ return done}
+$e("f").onchange=async e=>{MIS=0;let n=0,bad=[];
+ for(const f of e.target.files){try{const d=await ingest(f);if(d)n++;else bad.push(f.name)}catch(x){bad.push(f.name)}}
+ e.target.value="";
+ $e("msg").innerHTML=(n?`✔ Loaded ${n} file(s). Showing ${cur}.`+(MIS?` ⚠ ${MIS} client(s) kept their locked entity (unlock to change entities).`:""):"")+(bad.length?` <span class="neg">Could not read: ${bad.join(", ")} – check it has a “Client Name” header row, a “Report - Mon-YY” title, and Entity / Invoice / OA / CMD / PLD columns.</span>`:"");
+ draw()};
+// ---------- Render ----------
+function draw(skipEntry){
+ const labs=Object.keys(M).sort((a,b)=>key(a)-key(b));
+ $e("upl").style.display=can("import")?"":"none";$e("xl").disabled=$e("pf").disabled=!labs.length;
+ if(!labs.length){["trend","ent","mix","loss","hi","top","tr","th","tb","ms"].forEach(i=>$e(i).innerHTML="");$e("kpi").innerHTML='<div class="c">No data yet. '+(can("newmonth")?"Create your first month to begin.":"Ask a manager to add the first month.")+"</div>";$e("entry").style.display="none";if(can("newmonth"))NMO=true;drawNM();who("");return}
+ if(!M[cur])cur=labs[labs.length-1];who(cur);$e("nmb").style.display=can("newmonth")?"":"none";drawNM();drawAudit();drawRoles();{const mr=$e("myrole");if(mr)mr.textContent="· You are signed in as: "+(LOCAL?"Owner (this browser)":roleLabel())}
+ $e("ms").innerHTML=`<select id="msel" aria-label="Select month">${[...labs].reverse().map(l=>`<option value="${l}"${l==cur?" selected":""}>${l}</option>`).join("")}</select>`+(can("remove")?`<button data-d="1" title="Remove selected month">${del==cur?"Click again to confirm":"🗑 Remove "+cur}</button>`:"");
+ if(!skipEntry)drawEntry();
+ if(!calc(M[cur].rows).length){["trend","ent","mix","loss","hi","top","tr","th","tb"].forEach(i=>$e(i).innerHTML="");$e("kpi").innerHTML='<div class="c">No amounts entered for '+cur+' yet.'+(can("entry")?" Type each client’s invoice and software charges in the entry sheet above.":" Ask a data-entry user or manager to enter the data.")+"</div>";return}
+ const R=calc(M[cur].rows),T={inv:sum(R,"inv"),cost:sum(R,"cost"),oa:sum(R,"oa"),cmd:sum(R,"cmd"),pld:sum(R,"pld")};
+ const loss=R.filter(r=>r.net<0).sort((a,b)=>a.net-b.net);
+ const pi=labs.indexOf(cur)-1,pv=pi>=0?tot(labs[pi]):null;
+ const dl=(a,b,inv)=>pv&&b?`<span class="${(a>=b)==inv?"pos":"neg"}">${a>=b?"▲":"▼"} ${P(Math.abs(a/b-1))}</span> vs ${labs[pi]}`:"";
+ $e("kpi").innerHTML=[["Invoice raised",$(T.inv),dl(T.inv,pv&&pv.inv,true)||R.filter(r=>r.inv>0).length+" clients invoiced"],
+ ["Software cost",$(T.cost),dl(T.cost,pv&&pv.cost,false)||"OA + CMD + PLD"],
+ ["Net income",$(T.inv-T.cost),"After software cost"],["Cost % of invoice",(T.inv?P(T.cost/T.inv):"n/a"),"Overall expense ratio"],
+ ["Loss-making clients",loss.length,loss.filter(r=>r.inv==0).length+" of them not yet invoiced"]].map(k=>`<div class="c"><div class="kl">${k[0]}</div><div class="kv">${k[1]}</div><div class="kn">${k[2]}</div></div>`).join("");
+ // trend
+ if(labs.length<2)$e("trend").innerHTML='<div class="kn">Add another month to see the trend here.</div>';
+ else{const TT=labs.map(l=>({l,...tot(l)})),mx=Math.max(...TT.map(x=>x.inv),1);
+  $e("trend").innerHTML=`<div class="tr">${TT.map(x=>`<div><div class="p"><i style="height:${x.inv/mx*100}%;background:var(--blue)"></i><i style="height:${Math.max(x.cost/mx*100,1)}%;background:var(--amber)"></i></div><b>${x.l}</b><div class="kn">${x.inv?P(x.cost/x.inv):"-"}</div></div>`).join("")}</div><div class="lg"><span><b style="background:var(--blue)"></b>Invoice</span><span><b style="background:var(--amber)"></b>Software cost</span><span>% = cost ÷ invoice</span></div>`}
+ // entity
+ const ents=[...new Set(R.map(r=>r.e))].map(e=>{const a=R.filter(r=>r.e==e);return{e,inv:sum(a,"inv"),cost:sum(a,"cost")}}).sort((a,b)=>b.inv-a.inv),mx=Math.max(...ents.map(x=>x.inv),1);
+ $e("ent").innerHTML=ents.map(x=>`<div class="row"><div>${E[x.e]||x.e}</div><div><div class="bar"><i style="width:${x.inv/mx*100}%;background:var(--blue)"></i></div><div class="bar"><i style="width:${Math.max(x.cost/mx*100,.8)}%;background:var(--amber)"></i></div><div class="kn">${$(x.inv)} invoiced · ${$(x.cost)} cost</div></div><div><span class="pill" style="background:${col(x.inv?x.cost/x.inv:1)}">${x.inv?P(x.cost/x.inv):"n/a"}</span></div></div>`).join("");
+ // donut
+ const parts=[["OA",T.oa,"var(--blue)"],["CMD",T.cmd,"var(--teal)"],["PLD",T.pld,"var(--amber)"]],C=2*Math.PI*40;let off=0;
+ const arcs=parts.map(p=>{const l=p[1]/(T.cost||1)*C,s=`<circle r="40" cx="60" cy="60" fill="none" stroke="${p[2]}" stroke-width="22" stroke-dasharray="${l} ${C-l}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=l;return s}).join("");
+ $e("mix").innerHTML=`<svg width="150" height="150" viewBox="0 0 120 120">${arcs}<text x="60" y="58" text-anchor="middle" font-size="9" fill="var(--mut)">Total</text><text x="60" y="72" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">${$(T.cost)}</text></svg><div style="flex:1;min-width:150px">${parts.map(p=>`<div class="al"><span><span class="lg" style="display:inline"><b style="background:${p[2]}"></b></span>${p[0]}</span><span><b>${$(p[1])}</b> · ${P(p[1]/(T.cost||1))}</span></div>`).join("")}</div>`;
+ const ENT=["All",...ents.map(x=>x.e)];if(!ENT.includes(FL))FL="All";if(!ENT.includes(FH))FH="All";
+ const fb=(p,c)=>`<div class="tb">${ENT.map(e=>`<button data-p="${p}" data-e="${e}" class="${e==c?"on":""}">${e}</button>`).join("")}</div>`;
+ const TH=.15,hiL=R.filter(r=>r.inv>0&&r.pct>TH).sort((a,b)=>b.pct-a.pct);
+ const lossF=loss.filter(r=>FL=="All"||r.e==FL),hiF=hiL.filter(r=>FH=="All"||r.e==FH).sort((a,b)=>(typeof a[SH]=="string"?a[SH].localeCompare(b[SH]):a[SH]-b[SH])*AH),hh=(k,l)=>`<th data-hs="${k}">${l}${SH==k?(AH<0?" ▼":" ▲"):""}</th>`;
+ $e("loss").innerHTML=fb("loss",FL)+(lossF.length?`<div class="sc"><table style="min-width:360px"><thead><tr><th>Client</th><th>Entity</th><th>Software cost</th><th>Loss</th></tr></thead><tbody>${lossF.map(r=>`<tr class="${r.inv==0?"pend":""}"><td>${r.n}${r.inv==0?'<br><span class="tag">Invoice yet to be sent</span>':''}</td><td>${r.e}</td><td>${$2(r.cost)}</td><td class="neg"><b>${$2(r.net)}</b></td></tr>`).join("")}</tbody></table></div><div class="kn" style="margin-top:8px">${lossF.length} client(s) · Total loss: <b class="neg">${$2(sum(lossF,"net"))}</b></div>`:'<div class="kn">None 🎉</div>');
+ $e("hi").innerHTML=fb("hi",FH)+(hiF.length?`<div class="kn" style="margin:2px 0 6px">${hiF.length} client(s) above ${P(TH)} · ${$(sum(hiF,"cost"))} software cost against ${$(sum(hiF,"inv"))} invoiced · Actual to HBS <b>${$(sum(hiF,"net"))}</b></div><div class="sc"><table style="min-width:540px"><thead><tr>${hh("n","Client")}${hh("e","Entity")}${hh("inv","Invoice")}${hh("cost","Software cost")}${hh("net","Actual to HBS")}${hh("pct","Cost %")}</tr></thead><tbody>${hiF.map(r=>`<tr><td>${r.n}</td><td>${r.e}</td><td>${$(r.inv)}</td><td>${$2(r.cost)}</td><td class="${r.net<0?"neg":""}"><b>${$2(r.net)}</b></td><td><span class="pill" style="background:${col(r.pct)}">${P(r.pct)}</span></td></tr>`).join("")}</tbody></table></div>`:'<div class="kn">No client above the threshold 🎉</div>');
+ const t10=[...R].sort((a,b)=>b.cost-a.cost).slice(0,10),tm=t10[0].cost||1;
+ $e("top").innerHTML=t10.map(r=>`<div class="row" style="grid-template-columns:minmax(120px,240px) 1fr 80px"><div>${r.n}</div><div class="bar" style="height:14px"><i style="width:${r.cost/tm*100}%;background:var(--teal)"></i></div><div style="text-align:right"><b>${$(r.cost)}</b></div></div>`).join("");
+ // table
+ const cols=[["n","Client"],["e","Entity"],["inv","Invoice"],["oa","OA"],["cmd","CMD"],["pld","PLD"],["cost","Total cost"],["net","Net income"],["pct","Cost %"]];
+ if(!ents.some(x=>x.e==F))F="All";
+ $e("tb").innerHTML=["All",...ents.map(x=>x.e)].map(e=>`<button data-e="${e}" class="${e==F?"on":""}">${e}</button>`).join("")+`<input type="text" id="q" placeholder="Search client…" value="${Q}">`;
+ $e("q").oninput=e=>{Q=e.target.value.toLowerCase();rows()};rows();
+ function rows(){
+  const a=R.filter(r=>(F=="All"||r.e==F)&&r.n.toLowerCase().includes(Q));
+  a.sort((x,y)=>(typeof x[S]=="string"?x[S].localeCompare(y[S]):x[S]-y[S])*A);
+  $e("th").innerHTML="<tr>"+cols.map(c=>`<th data-s="${c[0]}">${c[1]}${S==c[0]?(A<0?" ▼":" ▲"):""}</th>`).join("")+"</tr>";
+  $e("tr").innerHTML=a.map(r=>`<tr class="${r.inv==0&&r.cost>0?"pend":""}"><td>${r.n}${r.inv==0&&r.cost>0?'<br><span class="tag">Invoice yet to be sent</span>':''}</td><td>${r.e}</td><td>${$(r.inv)}</td><td>${r.oa?$2(r.oa):"–"}</td><td>${r.cmd?$2(r.cmd):"–"}</td><td>${r.pld?$2(r.pld):"–"}</td><td>${$2(r.cost)}</td><td class="${r.net<0?"neg":""}">${$2(r.net)}</td><td><span class="pill" style="background:${col(r.pct)}">${P(r.pct)}</span></td></tr>`).join("")+`<tr><td><b>Total (${a.length})</b></td><td></td><td><b>${$(sum(a,"inv"))}</b></td><td></td><td></td><td></td><td><b>${$2(sum(a,"cost"))}</b></td><td><b>${$2(sum(a,"net"))}</b></td><td></td></tr>`}
+}
+$e("ms").onchange=e=>{if(e.target.id=="msel"){cur=e.target.value;del="";remember();draw()}};
+$e("ms").onclick=async e=>{const b=e.target;
+ if(b.dataset.m){cur=b.dataset.m;del="";draw()}
+ else if(b.dataset.d){if(del!=cur){del=cur}else{const g=cur;del="";try{const R0=calc(M[g].rows);await removeMonth(g);delete BASE[g];await logAudit({a:"Month removed",month:g,t:`${R0.length} clients · Invoice ${$(sum(R0,"inv"))} · Software cost ${$(sum(R0,"cost"))}`})}catch(x){}const k=Object.keys(M).sort((a,b)=>key(a)-key(b));cur=k.pop()||""}draw()}};
+$e("tb").onclick=e=>{if(e.target.dataset.e){F=e.target.dataset.e;draw()}};
+$e("th").onclick=e=>{const s=e.target.dataset.s;if(!s)return;A=S==s?-A:-1;S=s;draw()};
+const fclk=e=>{const b=e.target;if(b.dataset.p){if(b.dataset.p=="loss")FL=b.dataset.e;else FH=b.dataset.e;draw()}};
+$e("loss").onclick=fclk;$e("hi").onclick=e=>{const b=e.target;if(b.dataset.hs){AH=SH==b.dataset.hs?-AH:-1;SH=b.dataset.hs;draw()}else fclk(e)};
+// ---------- Direct data entry, entity lock, audit trail ----------
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let ES="ent_az",EF="All",BRK=false,COLL=new Set(),EO=true,EQ="",SK=0,tmr=null,NMO=false,NMM=-1,NMY=26,NMC=true,DELI=-1,LASTE="TLK",KN={};
+let BASE={},AUDM={},LK=null,UNL={until:0,reason:""},LKP="",ivl=null,MIS=0,AF="",AA="",AQ="",ALIM=40,AUDR=false;
+const entList=()=>{const s=new Set(["TLK","NRS","HBS","FBS","Navira"]);Object.values(M).forEach(m=>m.rows.forEach(r=>s.add(r[1])));return[...s]};
+const sortedLabs=()=>Object.keys(M).sort((a,b)=>key(a)-key(b));
+const isUnlocked=()=>Date.now()<UNL.until,isOwner=()=>LOCAL||ME.isOwner;
+const tleft=()=>{const s=Math.max(0,Math.ceil((UNL.until-Date.now())/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+const fmtDT=iso=>{const d=new Date(iso);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})+", "+d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})};
+// --- base snapshot (what is saved) used to work out what changed ---
+function setBase(n,except){Object.keys(n).forEach(id=>{n[id].rows.forEach(r=>{if(r.o===undefined)r.o=r[0]});if(id===except)return;BASE[id]=JSON.stringify(n[id].rows.filter(r=>String(r[0]).trim()))})}
+function rebase(lb){const d=M[lb];if(!d)return;BASE[lb]=JSON.stringify(d.rows.filter(r=>String(r[0]).trim()));d.rows.forEach(r=>{r.o=r[0];delete r.nw})}
+function savedKN(){const m={};Object.values(BASE).forEach(j=>{try{JSON.parse(j).forEach(r=>{if(String(r[0]).trim())m[r[0].trim().toLowerCase()]=r[1]})}catch(e){}});return m}
+// --- audit trail ---
+async function logAudit(e){const id=Date.now()+"-"+Math.floor(Math.random()*1e6);
+ const en={id,at:new Date().toISOString(),by:ME.id||null,byName:ME.name||(LOCAL?"This browser":"Unknown user"),role:LOCAL?"":ROLE,month:e.month||"",action:e.a,client:e.c||"",details:e.t||"",reason:e.reason||""};
+ AUDM[id]=en;renderAuditList();
+ if(DB){await DB.doc("audit/"+id).set(en)}else{try{localStorage.setItem("hbs_audit",JSON.stringify(AUDM))}catch(x){}}}
+function diffRows(lb){const d=M[lb],now=d.rows.filter(r=>String(r[0]).trim()),base=JSON.parse(BASE[lb]||"[]"),bm={};base.forEach(r=>{bm[r[0]]=r});
+ const ev=[],seen=new Set(),F=["","Entity","Invoice raised","OA charges","CMD charges","PLD charges"];
+ now.forEach(r=>{const b=r.o!==undefined?bm[r.o]:null;
+  if(!b){ev.push({a:"Client added",c:r[0],t:`Entity ${r[1]} · Invoice ${$2(r[2])} · OA ${$2(r[3])} · CMD ${$2(r[4])} · PLD ${$2(r[5])}`});return}
+  seen.add(r.o);
+  if(r[0]!==b[0])ev.push({a:"Client renamed",c:r[0],t:`“${b[0]}” → “${r[0]}”`});
+  if(r[1]!==b[1])ev.push({a:"Entity changed",c:r[0],t:`Entity ${b[1]} → ${r[1]}`,reason:UNL.reason});
+  const ch=[];for(let i=2;i<6;i++)if(r[i]!==b[i])ch.push(`${F[i]} ${$2(b[i])} → ${$2(r[i])}`);
+  if(ch.length)ev.push({a:"Amounts changed",c:r[0],t:ch.join(" · ")})});
+ base.forEach(b=>{if(!seen.has(b[0]))ev.push({a:"Client deleted",c:b[0],t:`Was ${b[1]} · Invoice ${$2(b[2])} · Software cost ${$2(b[3]+b[4]+b[5])}`})});
+ return ev}
+const adot=a=>/Entity|deleted|removed/.test(a)?"var(--red)":/Amounts|renamed/.test(a)?"var(--amber)":/password|Permissions/.test(a)?"#8b5cf6":"var(--green)";
+function drawAudit(){const el=$e("audit");
+ if(!AUDR){AUDR=true;el.innerHTML=`<h2>🧾 Audit trail <span class="kn">(every change is recorded with date, time and user)</span></h2><div class="tb"><select id="af"></select><select id="aa"></select><input type="text" id="aq" placeholder="Search client or details…"></div><div id="audl"></div>`}
+ const ms=[...new Set(Object.values(AUDM).map(e=>e.month).filter(Boolean))].sort((a,b)=>key(b)-key(a)),
+  as=[...new Set(Object.values(AUDM).map(e=>e.action))].sort(),af=$e("af"),aa=$e("aa");
+ if(af)af.innerHTML='<option value="">All months</option>'+ms.map(m=>`<option${m==AF?" selected":""}>${esc(m)}</option>`).join("");
+ if(aa)aa.innerHTML='<option value="">All changes</option>'+as.map(m=>`<option${m==AA?" selected":""}>${esc(m)}</option>`).join("");
+ renderAuditList()}
+function renderAuditList(){const el=$e("audl");if(!el)return;const q=AQ.toLowerCase();
+ const L=Object.values(AUDM).sort((a,b)=>String(b.at).localeCompare(String(a.at))).filter(e=>(!AF||e.month==AF)&&(!AA||e.action==AA)&&(!q||(e.client+" "+e.details+" "+e.byName+" "+e.action).toLowerCase().includes(q)));
+ el.innerHTML=L.length?`<div class="tl">${L.slice(0,ALIM).map(e=>`<div class="it" style="--dot:${adot(e.action)}"><div class="dt">${fmtDT(e.at)}${e.month?" · "+esc(e.month):""}</div><div class="ti">${esc(e.action)}${e.client?" – "+esc(e.client):""}</div><div class="ds">${esc(e.details||"")}</div>${e.reason?`<div class="rs">Reason: ${esc(e.reason)}</div>`:""}<div class="by">by ${esc(e.byName||"Unknown user")}${e.role&&RL[e.role]?" · "+RL[e.role].replace(" (view only)",""):""}</div></div>`).join("")}</div>${L.length>ALIM?`<button id="amore">Show more (${L.length-ALIM})</button>`:""}`:'<div class="kn">No changes recorded yet.</div>'}
+$e("audit").onchange=e=>{const t=e.target;if(t.id=="af")AF=t.value;else if(t.id=="aa")AA=t.value;ALIM=40;renderAuditList()};
+$e("audit").oninput=e=>{if(e.target.id=="aq"){AQ=e.target.value;ALIM=40;renderAuditList()}};
+$e("audit").onclick=e=>{if(e.target.id=="amore"){ALIM+=40;renderAuditList()}};
+$e("aud").onclick=()=>{const a=$e("audit");if(a&&a.scrollIntoView)a.scrollIntoView({behavior:"smooth"})};
+// --- entity lock (password) ---
+const b64e=u=>btoa(String.fromCharCode(...u)),b64d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function hashPw(pw,salt,iter){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);
+ return b64e(new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:b64d(salt),iterations:iter,hash:"SHA-256"},k,256)))}
+async function loadLock(){try{if(DB){const s=await DB.doc("config/lock").get();LK=s&&s.exists?s.data():null}else{const x=localStorage.getItem("hbs_lock");LK=x?JSON.parse(x):null}}catch(e){LK=null}}
+async function saveLock(pw){const salt=b64e(crypto.getRandomValues(new Uint8Array(16))),iter=150000,hash=await hashPw(pw,salt,iter);
+ const d={salt,iter,hash,by:ME.id||null,at:new Date().toISOString()};
+ if(DB)await DB.doc("config/lock").set(d);else localStorage.setItem("hbs_lock",JSON.stringify(d));LK=d}
+function startTick(){clearInterval(ivl);ivl=setInterval(()=>{if(!isUnlocked()){clearInterval(ivl);UNL.until=0;drawEntry();return}const t=$e("lkt");if(t)t.textContent=tleft()},1000)}
+function lockPanel(){if(!LKP)return"";const inp=(id,ph,t)=>`<input type="${t||"password"}" id="${id}" placeholder="${ph}" autocomplete="off" style="max-width:230px">`;
+ if(LKP=="unlock")return `<div class="tb lkbox"><b>🔒 Enter the password to change entities</b>${inp("lkpw","Password")}${inp("lkrs","Reason for change (recorded)","text")}<button class="up" id="lkgo">Unlock for 10 minutes</button><button id="lkx">Cancel</button><span id="lke" class="neg"></span></div>`;
+ return `<div class="tb lkbox"><b>${LK?"Change":"Set"} the entity lock password</b>${LK?inp("lkpw","Current password"):""}${inp("lkp1","New password (min. 6 characters)")}${inp("lkp2","Repeat new password")}<button class="up" id="lkset">Save password</button><button id="lkx">Cancel</button><span id="lke" class="neg"></span></div>`}
+// --- saving ---
+async function persist(lb){const d=M[lb];if(!d)return;const ev=diffRows(lb);d.by=ME.id;d.at=new Date().toISOString();
+ const out={rows:d.rows.filter(r=>String(r[0]).trim()),idle:0};
+ if(DB){await DB.doc("months/"+lb).set(pack(out))}else{try{localStorage.setItem("hbs_months",JSON.stringify(M))}catch(e){}}
+ rebase(lb);
+ try{for(const e of ev)await logAudit({...e,month:lb})}catch(x){$e("msg").innerHTML='<span class="neg">Saved, but the audit trail entry could not be written. Please tell the owner.</span>'}}
+function scheduleSave(){SK=Date.now();const lb=cur,s=$e("sv");if(s)s.textContent="Saving…";clearTimeout(tmr);
+ tmr=setTimeout(async()=>{try{await persist(lb);SK=Date.now();const s2=$e("sv");if(s2)s2.textContent="✔ Saved "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});draw(true)}
+  catch(x){const s2=$e("sv");if(s2)s2.innerHTML='<span class="neg">Could not save. Check your connection and try again.</span>'}},700)}
+const sumRows=pred=>{const o={inv:0,oa:0,cmd:0,pld:0};(M[cur]?M[cur].rows:[]).forEach(x=>{if(String(x[0]).trim()&&pred(x)){o.inv+=x[2];o.oa+=x[3];o.cmd+=x[4];o.pld+=x[5]}});o.cost=o.oa+o.cmd+o.pld;o.net=o.inv-o.cost;o.pct=o.inv>0?o.cost/o.inv:(o.cost>0?1:0);return o};
+const tcells=o=>`<td data-t="inv">${$2(o.inv)}</td>`+(BRK?`<td data-t="oa">${$2(o.oa)}</td><td data-t="cmd">${$2(o.cmd)}</td><td data-t="pld">${$2(o.pld)}</td>`:"")+`<td data-t="cost">${$2(o.cost)}</td><td data-t="net" class="${o.net<0?"neg":""}">${$2(o.net)}</td><td data-t="pct">${o.cost||o.inv?P(o.pct):"-"}</td><td></td>`;
+function updTotals(){document.querySelectorAll("#entry tr[data-g]").forEach(tr=>{const g=tr.dataset.g,o=sumRows(x=>(EF=="All"||x[1]==EF)&&(g=="*"||x[1]==g));
+ const set=(k,v,neg)=>{const c=tr.querySelector('[data-t="'+k+'"]');if(c){c.textContent=v;if(neg!==undefined&&c.classList)c.classList.toggle("neg",neg)}};
+ set("inv",$2(o.inv));set("oa",$2(o.oa));set("cmd",$2(o.cmd));set("pld",$2(o.pld));set("cost",$2(o.cost));set("net",$2(o.net),o.net<0);set("pct",o.cost||o.inv?P(o.pct):"-")})}
+const rowHtml=(r,i,ents,free)=>{const c=r[3]+r[4]+r[5],p=r[2]>0?c/r[2]:(c>0?1:0),ok=r.nw||free;
+ return `<tr data-i="${i}"><td><input type="text" list="cn" data-f="0" value="${esc(r[0])}" placeholder="Client name"${(r.nw||can("rename"))?"":' readonly title="Only a manager can rename an existing client."'}></td><td><select data-f="1"${ok?"":' disabled title="Locked. Use the 🔒 button above and enter the password to change the entity."'}>${ents.map(e=>`<option${e==r[1]?" selected":""}>${esc(e)}</option>`).join("")}</select></td>`+
+ (BRK?[2,3,4,5]:[2]).map(f=>`<td><input class="num" type="number" step="0.01" data-f="${f}" value="${r[f]||""}" placeholder="0.00"></td>`).join("")+
+ `<td class="c6">${$2(c)}</td><td class="c7 ${r[2]-c<0?"neg":""}">${$2(r[2]-c)}</td><td class="c8">${c||r[2]?P(p):"-"}</td><td>${can("del")?`<button class="del" data-del="${i}" title="Delete this client">✕</button>`:""}</td></tr>`};
+function drawEntry(){const el=$e("entry");
+ if(!can("entry")||!M[cur]){el.style.display="none";el.innerHTML="";return}
+ el.style.display="";const rows=M[cur].rows,ents=entList(),labs=sortedLabs(),pi=labs.indexOf(cur),prevL=pi>0?labs[pi-1]:"",free=isUnlocked();
+ KN={};const nm=new Set();Object.values(M).forEach(m=>m.rows.forEach(r=>{if(String(r[0]).trim()){KN[r[0].trim().toLowerCase()]=r[1];nm.add(r[0])}}));
+ const lkb=free?`<button class="lk open" id="lk">🔓 Entities unlocked – <span id="lkt">${tleft()}</span> left · lock now</button>`:`<button class="lk" id="lk">🔒 Entity locked</button>`;
+ const live=rows.filter(r=>String(r[0]).trim()),cnt={};live.forEach(r=>{cnt[r[1]]=(cnt[r[1]]||0)+1});
+ if(EF!="All"&&!cnt[EF]&&!rows.some(r=>r[1]==EF))EF="All";
+ const ebtn=["All",...ents.filter(e=>cnt[e])].map(e=>`<button data-ef="${esc(e)}" class="${e==EF?"on":""}">${esc(e)} (${e=="All"?live.length:cnt[e]})</button>`).join("");
+ const SO=[["ent_az","Entity, then client A to Z"],["ent_za","Entity, then client Z to A"],["az","Client name A to Z"],["za","Client name Z to A"],["entry","Entry order (newest first)"]];
+ const eo={};ents.forEach((e,i)=>{eo[e]=i});const cmpN=(a,b,d)=>String(rows[a][0]).localeCompare(String(rows[b][0]),undefined,{sensitivity:"base",numeric:true})*d;
+ const sf={ent_az:(a,b)=>eo[rows[a][1]]-eo[rows[b][1]]||cmpN(a,b,1),ent_za:(a,b)=>eo[rows[a][1]]-eo[rows[b][1]]||cmpN(a,b,-1),az:(a,b)=>cmpN(a,b,1),za:(a,b)=>cmpN(a,b,-1),entry:(a,b)=>a-b}[ES]||((a,b)=>a-b);
+ const idx=rows.map((r,i)=>i).filter(i=>EF=="All"||rows[i][1]==EF).sort(sf),grp=ES.startsWith("ent");let body="",lastE=null;
+ idx.forEach(i=>{const r=rows[i];if(grp&&r[1]!==lastE){lastE=r[1];const n=idx.filter(j=>rows[j][1]==r[1]&&String(rows[j][0]).trim()).length;body+=`<tr class="gh" data-g="${esc(r[1])}"><td colspan="2" class="gt" data-tg="${esc(r[1])}" title="Click to hide or show this entity’s clients">${COLL.has(r[1])?"▶":"▼"} ${esc(r[1])}${E[r[1]]?" – "+esc(E[r[1]]):""} <span class="kn">· ${n} client${n==1?"":"s"}</span></td>${tcells(sumRows(x=>x[1]==r[1]))}</tr>`}
+  if(!(grp&&COLL.has(r[1])))body+=rowHtml(r,i,ents,free)});
+ const nAll=idx.filter(j=>String(rows[j][0]).trim()).length,foot=`<tfoot><tr data-g="*"><td colspan="2">Total – ${EF=="All"?"all clients":esc(EF)} · ${nAll} client${nAll==1?"":"s"}</td>${tcells(sumRows(x=>EF=="All"||x[1]==EF))}</tr></tfoot>`;
+ el.innerHTML=`<details ${EO?"open":""}><summary>✏️ Enter / edit client details – ${cur} <span class="kn">(${rows.filter(r=>String(r[0]).trim()).length} clients · saves automatically)</span></summary>
+ <div class="tb" style="margin-top:12px"><button class="up" id="addc">＋ Add client</button>${prevL?`<button id="cpy" title="Adds the clients that were in ${prevL} but are not in ${cur} yet, with blank amounts, under their own entity. Clients already in ${cur} are not touched.">⎘ Add clients from ${prevL} (amounts blank)</button>`:""}${can("entity")?lkb:""}${can("lockpw")?`<button id="lkchg">${LK?"Change lock password":"Set lock password"}</button>`:""}<input type="text" id="eq" placeholder="Search client…" value="${esc(EQ)}"><span id="sv" class="kn"></span><span id="sn" class="kn" style="flex-basis:100%"></span></div>
+ ${lockPanel()}
+ <div class="tb"><b class="kn">Show:</b>${ebtn}<label class="kn" style="margin-left:auto">Sort: <select id="es">${SO.map(([v,l])=>`<option value="${v}"${v==ES?" selected":""}>${l}</option>`).join("")}</select></label></div>
+ <div class="tb"><button id="brk" class="${BRK?"on":""}" title="Show or hide the OA / CMD / PLD columns">${BRK?"🙈 Hide breakdown (OA / CMD / PLD)":"👁 Show breakdown (OA / CMD / PLD)"}</button>${grp?'<button id="colall">⊟ Hide all clients (totals only)</button><button id="expall">⊞ Show all clients</button>':""}</div>
+ <div class="kn" style="margin-bottom:8px">${BRK?"Type the invoice and the OA / CMD / PLD charges. Software cost and Actual to HBS are calculated for you.":"Summary view: only each client’s invoice, total software cost and result are shown. Click “Show breakdown” to enter or check the OA / CMD / PLD charges."} A client’s entity is locked once saved; use the password to change it (every change is recorded in the audit trail). Click an entity heading to hide or show its clients.</div>
+ <datalist id="cn">${[...nm].map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
+ <div class="eg"><table style="min-width:${BRK?980:720}px"><thead><tr><th>Client</th><th>Entity</th><th>Invoice raised</th>${BRK?"<th>OA charges</th><th>CMD charges</th><th>PLD charges</th>":""}<th>Total software cost</th><th>Actual to HBS</th><th>Cost %</th><th></th></tr></thead><tbody>${body}</tbody>${foot}</table></div></details>`;
+ el.querySelector("details").ontoggle=function(){EO=this.open};
+ if(free)startTick();filterEntry()}
+const sortedEnts=()=>[...new Set((M[cur]?M[cur].rows:[]).map(r=>r[1]))];
+function filterEntry(){const q=EQ.toLowerCase();let hdr=null,vis=0;
+ document.querySelectorAll("#entry tbody tr").forEach(tr=>{if(tr.dataset.i===undefined){if(hdr)hdr.style.display=vis?"":"none";hdr=tr;vis=0;return}
+  const r=M[cur]&&M[cur].rows[+tr.dataset.i],show=!q||(r&&String(r[0]).toLowerCase().includes(q));tr.style.display=show?"":"none";if(show)vis++});
+ if(hdr)hdr.style.display=vis?"":"none"}
+$e("entry").oninput=e=>{const t=e.target;if(t.id=="eq"){EQ=t.value;filterEntry();return}
+ const tr=t.closest&&t.closest("tr");if(!tr||t.dataset.f===undefined||!M[cur])return;
+ const i=+tr.dataset.i,f=+t.dataset.f,r=M[cur].rows[i];if(!r)return;
+ if(f==0&&!(r.nw||can("rename"))){t.value=r[0];return}
+ if(f==1&&!(r.nw||isUnlocked())){t.value=r[1];return}
+ if(f<2){r[f]=t.value;if(f==1)LASTE=t.value}else{const v=parseFloat(t.value);r[f]=isNaN(v)?0:Math.round(v*1000)/1000}
+ if(f==0){const k=KN[t.value.trim().toLowerCase()];if(k&&r[1]!=k&&(r.nw||isUnlocked())&&!(r[2]||r[3]||r[4]||r[5])){r[1]=k;const s=tr.querySelector("select");if(s)s.value=k}
+  const nme=t.value.trim().toLowerCase(),dup=nme&&M[cur].rows.some((x,j)=>j!=i&&String(x[0]).trim().toLowerCase()==nme);t.classList.toggle("dup",!!dup);t.title=dup?"This client name is already in the list for this month":""}
+ const c=r[3]+r[4]+r[5],p=r[2]>0?c/r[2]:(c>0?1:0);
+ tr.querySelector(".c6").textContent=$2(c);const a=tr.querySelector(".c7");a.textContent=$2(r[2]-c);a.classList.toggle("neg",r[2]-c<0);tr.querySelector(".c8").textContent=(c||r[2])?P(p):"-";
+ updTotals();scheduleSave()};
+$e("entry").onchange=e=>{if(e.target.id=="es"){ES=e.target.value;drawEntry()}};
+$e("entry").onkeydown=e=>{if(e.key=="Enter"&&/^lk/.test(e.target.id||"")){const b=$e("lkgo")||$e("lkset");if(b&&b.click)b.click()}};
+$e("entry").onclick=async e=>{const b=e.target,id=b.id;
+ const g0=b.closest?b.closest("[data-tg]"):null;
+ if(g0){const g=g0.dataset.tg;if(COLL.has(g))COLL.delete(g);else COLL.add(g);drawEntry();return}
+ if(id=="brk"){BRK=!BRK;try{localStorage.setItem("hbs_brk",BRK?"1":"0")}catch(e){}drawEntry();return}
+ if(id=="colall"){sortedEnts().forEach(x=>COLL.add(x));drawEntry();return}
+ if(id=="expall"){COLL.clear();drawEntry();return}
+ if(b.dataset&&b.dataset.ef!==undefined){EF=b.dataset.ef;drawEntry();return}
+ if(id=="addc"){SK=Date.now();const nr=["",EF!="All"?EF:LASTE,0,0,0,0];nr.nw=true;COLL.delete(nr[1]);M[cur].rows.unshift(nr);EQ="";drawEntry();const f=document.querySelector("#entry tbody input");if(f&&f.focus)f.focus()}
+ else if(id=="cpy"){const labs=sortedLabs(),pl=labs[labs.indexOf(cur)-1];if(!pl)return;const have=new Set(M[cur].rows.map(r=>String(r[0]).trim().toLowerCase())),add=[];
+  M[pl].rows.forEach(r=>{const k=String(r[0]).trim().toLowerCase();if(k&&!have.has(k)){const nr=[r[0],r[1],0,0,0,0];nr.o=r[0];M[cur].rows.push(nr);add.push([r[0],r[1],0,0,0,0]);have.add(k)}});
+  if(add.length){BASE[cur]=JSON.stringify(JSON.parse(BASE[cur]||"[]").concat(add));logAudit({a:"Clients copied",month:cur,t:`${add.length} client(s) added from ${pl} with blank amounts`}).catch(()=>{})}
+  SK=Date.now();drawEntry();const s=$e("sn");if(s)s.textContent=add.length?`Added ${add.length} client(s) from ${pl} (${Object.entries(add.reduce((o,a)=>{o[a[1]]=(o[a[1]]||0)+1;return o},{})).map(([e,c])=>e+" "+c).join(", ")}) under their own entity. Type their amounts, or delete them if they are not billed in ${cur}.`:`No new clients to add from ${pl}.`;if(add.length)scheduleSave()}
+ else if(b.dataset&&b.dataset.del!==undefined){if(!can("del"))return;const i=+b.dataset.del;
+  if(DELI===i){M[cur].rows.splice(i,1);DELI=-1;SK=Date.now();drawEntry();scheduleSave()}else{DELI=i;b.textContent="Sure?"}}
+ else if(id=="lk"){if(!can("entity"))return;if(isUnlocked()){UNL.until=0;clearInterval(ivl);LKP="";drawEntry()}
+  else if(!LK){if(isOwner()){LKP="set";drawEntry()}else{$e("sv").textContent="The owner has not set the entity lock password yet."}}else{LKP="unlock";drawEntry()}}
+ else if(id=="lkchg"){LKP=LK?"change":"set";drawEntry()}
+ else if(id=="lkx"){LKP="";drawEntry()}
+ else if(id=="lkgo"){const pw=$e("lkpw").value,rs=($e("lkrs").value||"").trim(),er=$e("lke");er.textContent="Checking…";
+  try{if(await hashPw(pw,LK.salt,LK.iter)!==LK.hash){er.textContent="Wrong password.";return}}catch(x){er.textContent="This browser could not check the password.";return}
+  UNL={until:Date.now()+600000,reason:rs};LKP="";startTick();
+  try{await logAudit({a:"Entity changes unlocked",t:"Entity lock opened for 10 minutes",reason:rs})}catch(x){}
+  drawEntry()}
+ else if(id=="lkset"){const er=$e("lke"),p1=$e("lkp1").value,p2=$e("lkp2").value;
+  if(p1.length<6){er.textContent="Use at least 6 characters.";return}if(p1!==p2){er.textContent="The two passwords do not match.";return}
+  try{if(LK){if(await hashPw($e("lkpw").value,LK.salt,LK.iter)!==LK.hash){er.textContent="Current password is wrong.";return}}}catch(x){er.textContent="This browser could not check the password.";return}
+  try{const had=!!LK;await saveLock(p1);LKP="";try{await logAudit({a:had?"Entity lock password changed":"Entity lock password set",t:"Password for changing entities was "+(had?"changed":"set")})}catch(x){}drawEntry();const s=$e("sv");if(s)s.textContent="✔ Lock password saved."}
+  catch(x){er.textContent="Could not save. Only the owner can set the password."}}};
+// ---------- New month ----------
+function drawNM(){const el=$e("nm");if(!can("newmonth")||!NMO){el.innerHTML="";return}
+ const labs=sortedLabs(),last=labs[labs.length-1];
+ if(NMM<0){if(last){const m=last.split("-");NMM=(MN.indexOf(m[0].toLowerCase())+1)%12;NMY=+m[1]+(NMM==0?1:0)}else{const n=new Date();NMM=n.getMonth();NMY=n.getFullYear()%100}}
+ el.innerHTML=`<div class="tb" style="margin:10px 0 0;padding:10px;border:1px dashed var(--line);border-radius:10px"><b>New month:</b><select id="nmm">${MN.map((m,i)=>`<option value="${i}"${i==NMM?" selected":""}>${m[0].toUpperCase()+m.slice(1)}</option>`).join("")}</select><input type="number" id="nmy" min="20" max="99" value="${NMY}" style="max-width:80px" title="Year, 2 digits (for example 26)"><span class="kn">(year, e.g. 26)</span>${last?`<label class="kn"><input type="checkbox" id="nmc" ${NMC?"checked":""} style="width:auto"> Copy client list from ${last} (amounts blank)</label>`:""}<button class="up" id="nmgo">Create month</button><button id="nmx">Cancel</button></div>`}
+$e("nm").onchange=e=>{const t=e.target;if(t.id=="nmm")NMM=+t.value;else if(t.id=="nmy")NMY=+t.value;else if(t.id=="nmc")NMC=t.checked};
+$e("nm").onclick=async e=>{const b=e.target;
+ if(b.id=="nmx"){NMO=false;drawNM()}
+ else if(b.id=="nmgo"){const lb=label(MN[NMM],NMY),labs=sortedLabs(),last=labs[labs.length-1];
+  if(!M[lb]){const cp=NMC&&last;M[lb]={rows:cp?M[last].rows.filter(r=>String(r[0]).trim()).map(r=>[r[0],r[1],0,0,0,0]):[],idle:0};rebase(lb);SK=Date.now();
+   try{await persist(lb);await logAudit({a:"Month created",month:lb,t:cp?`${M[lb].rows.length} clients copied from ${last} with blank amounts`:"Empty month created"})}catch(x){$e("msg").innerHTML='<span class="neg">Could not create the month. Check your connection.</span>';delete M[lb];return}}
+  cur=lb;remember();NMO=false;EO=true;$e("msg").innerHTML=`✔ ${lb} is ready. Type each client’s amounts in the entry sheet below.`;draw()}};
+$e("nmb").onclick=()=>{NMO=!NMO;drawNM()};
+
+// ---------- Login portal ----------
+const IDLE_MS=30*60*1000;let SESS=false,lastAct=Date.now(),PMSG="";
+const lockUI=on=>{if(document.body&&document.body.classList)document.body.classList.toggle("locked",on)};
+const initials=n=>(String(n||"?").trim().split(/\s+/).map(x=>x[0]).slice(0,2).join("")||"?").toUpperCase();
+const roleDesc=()=>LOCAL?"Local mode – data stays in this browser":ROLE=="owner"?"Owner – full access":ROLE=="manager"?"Manager – can enter data, delete clients and manage months":ROLE=="entry"?"Viewer – can view and enter data":"Viewer – view only";
+function drawPortal(state){const el=$e("portal");if(!el)return;const hosted=typeof claude!="undefined";let body;
+ if(state=="checking")body='<div class="kn">Checking your sign-in…</div>';
+ else if(hosted&&!USER)body='<div class="neg"><b>You are not signed in.</b></div><div class="kn" style="margin-top:6px">Sign in to claude.ai with the email address the owner invited, then open this link again. If you do not have access, ask the owner to share the page with you.</div>';
+ else body=(PMSG?`<div class="pm2">${PMSG}</div>`:"")+`<div class="pid"><div class="av">${esc(initials(ME.name))}</div><div><div class="pn">${esc(ME.name||(LOCAL?"This browser":"Signed-in user"))}</div><div class="kn">${roleDesc()}</div></div></div><button class="up" id="pgo" style="width:100%;margin-top:14px;padding:10px">Enter dashboard →</button>`;
+ el.innerHTML=`<div class="pc"><div class="pl">📊</div><h1>Billing &amp; Software Cost Tracker</h1><div class="sub" style="margin-bottom:16px">Hamly Business Solutions India (P) Ltd</div>${body}<div class="kn" style="margin-top:16px;font-size:11.5px">Access is set by the owner through Share. For safety you are signed out after 30 minutes without activity.</div></div>`}
+function enterApp(){SESS=true;PMSG="";lastAct=Date.now();try{sessionStorage.setItem("hbs_sess",JSON.stringify({id:ME.id||"local",at:Date.now()}))}catch(e){}lockUI(false);draw()}
+function signOut(why){SESS=false;try{sessionStorage.removeItem("hbs_sess")}catch(e){}UNL.until=0;clearInterval(ivl);PMSG=why=="idle"?"You were signed out after 30 minutes without activity.":"You have signed out.";lockUI(true);drawPortal("ready")}
+$e("portal").onclick=e=>{if(e.target.id=="pgo")enterApp()};
+$e("so").onclick=()=>signOut("manual");
+["click","keydown","touchstart","mousemove"].forEach(ev=>{if(document.addEventListener)document.addEventListener(ev,()=>{lastAct=Date.now()},{passive:true})});
+setInterval(()=>{if(!SESS)return;if(Date.now()-lastAct>IDLE_MS)signOut("idle");else{try{const s=JSON.parse(sessionStorage.getItem("hbs_sess")||"null");if(s){s.at=Date.now();sessionStorage.setItem("hbs_sess",JSON.stringify(s))}}catch(e){}}},30000);
+// ---------- Editable roles & permissions (tick boxes + save) ----------
+const setsOf=s=>({viewer:new Set(String(s&&s.viewer||"").split(",").filter(Boolean)),manager:new Set(String(s&&s.manager||"").split(",").filter(Boolean))});
+let SETD=null;
+const ownerEdit=()=>ROLE=="owner"||LOCAL;
+function applyPerms(){PS=SETD?setsOf(SETD):{viewer:new Set(DEF.viewer),manager:new Set(DEF.manager)}}
+function resetDraft(){RD={viewer:new Set(PS.viewer),manager:new Set(PS.manager)};RDIRTY=false}
+function drawRoles(){const el=$e("rolesbox");if(!el)return;if(!RD)resetDraft();const ed=ownerEdit();
+ const cb=(r,a)=>{const on=RD[r].has(a),dis=!ed||(NEEDS_ENTRY.includes(a)&&!RD[r].has("entry"));return `<input type="checkbox" data-r="${r}" data-a="${a}"${on?" checked":""}${dis?" disabled":""} title="${dis&&ed?"Needs “Open Enter / edit client details” to be ticked first":""}">`};
+ const fx=on=>`<input type="checkbox" disabled${on?" checked":""}>`;
+ const rows=[["View the dashboard and audit trail, download Excel / PDF",fx(1),fx(1),fx(1)],
+  ...ACTS.map(([a,l])=>[l,cb("viewer",a),cb("manager",a),fx(1)]),
+  ["Set or change the lock password",fx(0),fx(0),fx(1)]];
+ el.innerHTML=`<div class="sc"><table class="pm" style="min-width:520px"><thead><tr><th>What the person can do</th><th>Viewer</th><th>Manager</th><th>Owner</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")}</tbody></table></div>`+
+ (ed?`<div class="tb" style="margin-top:10px"><button class="up" id="rsave"${RDIRTY?"":" disabled"}>💾 Save permissions</button><button id="rdisc"${RDIRTY?"":" disabled"}>Discard changes</button><button id="rdef">Reset to defaults</button>${RDIRTY?'<span class="kn" style="color:var(--amber);font-weight:700">Unsaved changes</span>':""}<span id="rmsg" class="kn"></span></div>`:'<div class="kn" style="margin-top:8px">Only the owner can change these permissions.</div>')+
+ `<div class="kn" style="margin-top:8px">Viewer data entry works when the owner shares the page with <b>Contributor</b> access; with plain <b>Viewer</b> access the person can only look. Managers are given <b>Editor</b> access. Renaming, deleting and changing an entity need the entry sheet to be ticked for that role. The “can only look” limit is enforced by the platform; the other limits are enforced on this page, and every change is recorded in the audit trail.</div>`}
+async function savePerms(){if(!ownerEdit())return;const m=$e("rmsg");
+ const d={viewer:[...RD.viewer].join(","),manager:[...RD.manager].join(","),by:ME.id||null,at:new Date().toISOString()},ch=[];
+ ["viewer","manager"].forEach(r=>ACTS.forEach(([a,l])=>{const was=PS[r].has(a),now=RD[r].has(a);if(was!==now)ch.push(`${r=="viewer"?"Viewer":"Manager"}: ${l.replace(/[“”]/g,"")} ${was?"Yes":"No"} → ${now?"Yes":"No"}`)}));
+ try{if(DB)await DB.doc("settings/perms").set(d);else localStorage.setItem("hbs_perms",JSON.stringify(d));
+  SETD=d;applyPerms();resetDraft();try{await logAudit({a:"Permissions changed",t:ch.length?ch.join(" · "):"Saved without changes"})}catch(x){}
+  drawRoles();const m2=$e("rmsg");if(m2)m2.textContent="✔ Permissions saved at "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+".";if(SESS)draw()}
+ catch(x){if(m)m.innerHTML='<span class="neg">Could not save. Only the owner can save permissions.</span>'}}
+$e("rolesbox").onchange=e=>{const t=e.target;if(!t.dataset||!t.dataset.r||!ownerEdit())return;const s=RD[t.dataset.r],a=t.dataset.a;
+ if(t.checked)s.add(a);else{s.delete(a);if(a=="entry")NEEDS_ENTRY.forEach(x=>s.delete(x))}RDIRTY=true;drawRoles()};
+$e("rolesbox").onclick=e=>{const id=e.target.id;
+ if(id=="rsave")savePerms();
+ else if(id=="rdisc"){resetDraft();drawRoles()}
+ else if(id=="rdef"){RD={viewer:new Set(DEF.viewer),manager:new Set(DEF.manager)};RDIRTY=true;drawRoles()}};
+// ---------- Export (Excel + PDF) ----------
+function rep(){const R=calc(M[cur].rows),TH=.15;
+ const T={inv:sum(R,"inv"),cost:sum(R,"cost"),oa:sum(R,"oa"),cmd:sum(R,"cmd"),pld:sum(R,"pld")};
+ const st=r=>r.inv==0&&r.cost>0?"Invoice yet to be sent":r.net<0?"Loss-making":r.pct>TH?"Above 15%":"OK";
+ const ents=[...new Set(R.map(r=>r.e))].map(e=>{const a=R.filter(r=>r.e==e);return{e,inv:sum(a,"inv"),cost:sum(a,"cost")}}).sort((a,b)=>b.inv-a.inv);
+ return{R:[...R].sort((a,b)=>b.pct-a.pct),T,TH,st,ents,loss:R.filter(r=>r.net<0).sort((a,b)=>a.net-b.net),hi:R.filter(r=>r.inv>0&&r.pct>TH).sort((a,b)=>b.pct-a.pct)}}
+const byE=(d,a)=>{const eo={};d.ents.forEach((x,i)=>eo[x.e]=i);return [...a].sort((x,y)=>eo[x.e]-eo[y.e])};
+const r2=x=>Math.round((x+(x<0?-1e-7:1e-7))*100)/100,pc=x=>Math.round(x*10000)/10000;
+const HEAD=["Client","Entity","Invoice","OA","CMD","PLD","Total cost","Actual to HBS","Cost %","Status"];
+async function saveFile(name,blob){
+ if(DL){try{await DL.save({filename:name,data:blob});return}catch(e){if(e&&e.code=="declined")return;$e("msg").innerHTML='<span class="neg">Download not available here ('+((e&&e.message)||"error")+').</span>';return}}
+ if(typeof claude!="undefined"){$e("msg").innerHTML='<span class="neg">Download is not available in this view. Open the page in claude.ai.</span>';return}
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function fmtCols(ws,money,pct){const rg=XLSX.utils.decode_range(ws["!ref"]);
+ for(let i=1;i<=rg.e.r;i++){for(const c of money){const a=ws[XLSX.utils.encode_cell({r:i,c})];if(a&&a.t=="n")a.z="#,##0.00"}
+  for(const c of pct){const a=ws[XLSX.utils.encode_cell({r:i,c})];if(a&&a.t=="n")a.z="0.0%"}}}
+function toXlsx(){
+ if(typeof XLSX=="undefined"||!XLSX.utils||!XLSX.write){$e("msg").innerHTML='<span class="neg">Excel tool did not load. Check your internet connection and reload.</span>';return}
+ const d=rep(),wb=XLSX.utils.book_new(),tp=d.T,net=tp.inv-tp.cost;
+ const row=r=>[r.n,r.e,r2(r.inv),r2(r.oa),r2(r.cmd),r2(r.pld),r2(r.cost),r2(r.net),pc(r.pct),d.st(r)];
+ const sm=[["Software Expense vs Client Invoice"],["Hamly Business Solutions India (P) Ltd"],["Month",cur],[],
+  ["Invoice raised",r2(tp.inv)],["Software cost",r2(tp.cost)],["Actual to HBS (Invoice - Software cost)",r2(net)],["Cost % of invoice",P(tp.cost/tp.inv)],
+  ["Loss-making clients",String(d.loss.length)],["of which invoice yet to be sent",String(d.loss.filter(r=>r.inv==0).length)],["Clients above "+P(d.TH),String(d.hi.length)],[],
+  ["By entity","Invoice","Software cost","Actual to HBS","Cost %"],
+  ...d.ents.map(x=>[x.e,r2(x.inv),r2(x.cost),r2(x.inv-x.cost),x.inv?P(x.cost/x.inv):"n/a"]),[],
+  ["Software cost split","Amount","Share"],["OA",r2(tp.oa),P(tp.oa/tp.cost)],["CMD",r2(tp.cmd),P(tp.cmd/tp.cost)],["PLD",r2(tp.pld),P(tp.pld/tp.cost)]];
+ const w1=XLSX.utils.aoa_to_sheet(sm);w1["!cols"]=[{wch:42},{wch:16},{wch:16},{wch:16},{wch:10}];fmtCols(w1,[1,2,3],[]);
+ XLSX.utils.book_append_sheet(wb,w1,"Summary");
+ const add=(name,head,rows,wch,money,pct)=>{const w=XLSX.utils.aoa_to_sheet([head,...rows]);w["!cols"]=wch.map(x=>({wch:x}));fmtCols(w,money,pct);XLSX.utils.book_append_sheet(wb,w,name)};
+ const tot=["TOTAL","",r2(tp.inv),r2(tp.oa),r2(tp.cmd),r2(tp.pld),r2(tp.cost),r2(net),pc(tp.cost/tp.inv),""];
+ add("All clients",HEAD,[...byE(d,d.R).map(row),tot],[44,9,13,12,12,12,13,15,9,24],[2,3,4,5,6,7],[8]);
+ add("Loss-making",["Client","Entity","Invoice","Software cost","Loss","Status"],byE(d,d.loss).map(r=>[r.n,r.e,r2(r.inv),r2(r.cost),r2(r.net),d.st(r)]),[44,9,13,14,13,24],[2,3,4],[]);
+ add("Above "+Math.round(d.TH*100)+"%",["Client","Entity","Invoice","Software cost","Actual to HBS","Cost %"],byE(d,d.hi).map(r=>[r.n,r.e,r2(r.inv),r2(r.cost),r2(r.net),pc(r.pct)]),[44,9,13,14,15,9],[2,3,4],[5]);
+ const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+ return saveFile("Software-Cost-vs-Invoice_"+cur+".xlsx",new Blob([out],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}))}
+function toPdf(){
+ if(!window.jspdf||!window.jspdf.jsPDF){$e("msg").innerHTML='<span class="neg">PDF tool did not load. Check your internet connection and reload.</span>';return}
+ const d=rep(),doc=new window.jspdf.jsPDF({orientation:"landscape",unit:"pt",format:"a4"});
+ if(!doc.autoTable){$e("msg").innerHTML='<span class="neg">PDF table tool did not load. Reload and try again.</span>';return}
+ const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),tp=d.T,net=tp.inv-tp.cost,mg=36,RED=[214,69,93];
+ const base={margin:{left:mg,right:mg},styles:{fontSize:8.5,cellPadding:4},headStyles:{fillColor:[47,111,237],textColor:255},alternateRowStyles:{fillColor:[247,249,252]}};
+ // table helper: right-aligns heading AND values of numeric columns, red for negatives
+ const at=(o,right,widths,neg)=>{const cs={};(widths||[]).forEach((w,i)=>{if(w)cs[i]={cellWidth:w}});right.forEach(i=>{cs[i]={...(cs[i]||{}),halign:"right"}});
+  o.columnStyles=cs;o.didParseCell=h=>{const c=h.column.index;if(right.includes(c)&&h.section!="body")h.cell.styles.halign="right";
+   if(h.section=="body"&&(neg||[]).includes(c)&&String(h.cell.text[0]||"").startsWith("-$"))h.cell.styles.textColor=RED};
+  doc.autoTable({...base,...o})};
+ const sub=a=>a.map(c=>({content:c,styles:{fontStyle:"bold",fillColor:[226,233,248],textColor:0}}));
+ const sec=(t,y)=>{if(y>H-120){doc.addPage();y=40}doc.setFontSize(12.5);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text(t,mg,y);return y+8};
+ const band=(t,y)=>{if(y>H-90){doc.addPage();y=40}doc.setFillColor(30,41,59);doc.rect(mg,y,W-2*mg,19,"F");doc.setTextColor(255);doc.setFontSize(10);doc.setFont("helvetica","bold");doc.text(t,mg+8,y+13);doc.setTextColor(0);return y+23};
+ const EN=e=>e+(E[e]?" - "+E[e]:""),cl=n=>n+" client"+(n==1?"":"s");
+ const groups=rows=>d.ents.map(x=>x.e).filter(e=>rows.some(r=>r.e==e)).map(e=>({e,rows:rows.filter(r=>r.e==e)}));
+ doc.setFontSize(17);doc.setFont("helvetica","bold");doc.text("Software Expense vs Client Invoice",mg,44);
+ doc.setFontSize(9.5);doc.setFont("helvetica","normal");doc.setTextColor(100);
+ doc.text("Hamly Business Solutions India (P) Ltd  |  Month: "+cur+"  |  Prepared "+new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})+"  |  Amounts in $",mg,60);doc.setTextColor(0);
+ // 1. Summary
+ let y=sec("Summary",86);
+ doc.autoTable({...base,startY:y,head:[["Invoice raised","Software cost","Actual to HBS","Cost % of invoice","Loss-making clients","Invoice yet to be sent","Clients above "+P(d.TH)]],
+  body:[[$2(tp.inv),$2(tp.cost),$2(net),P(tp.cost/tp.inv),String(d.loss.length),String(d.loss.filter(r=>r.inv==0).length),String(d.hi.length)]],styles:{fontSize:9.5,cellPadding:6,halign:"center"},headStyles:{fillColor:[47,111,237],textColor:255,halign:"center"}});
+ y=sec("By entity",doc.lastAutoTable.finalY+24);
+ at({startY:y,tableWidth:520,head:[["Entity","Invoice","Software cost","Actual to HBS","Cost %"]],
+  body:[...d.ents.map(x=>[EN(x.e),$2(x.inv),$2(x.cost),$2(x.inv-x.cost),x.inv?P(x.cost/x.inv):"n/a"]),sub(["Total",$2(tp.inv),$2(tp.cost),$2(net),P(tp.cost/tp.inv)])]},[1,2,3,4],[150,95,95,100,80]);
+ y=sec("Software cost split",doc.lastAutoTable.finalY+24);
+ at({startY:y,tableWidth:300,head:[["Charge","Amount","Share"]],body:[["OA",$2(tp.oa),P(tp.oa/tp.cost)],["CMD",$2(tp.cmd),P(tp.cmd/tp.cost)],["PLD",$2(tp.pld),P(tp.pld/tp.cost)]]},[1,2],[100,120,80]);
+ // 2. Loss-making, entity wise
+ doc.addPage();y=sec("Loss-making clients - by entity",44);
+ doc.setFontSize(8.5);doc.setFont("helvetica","normal");doc.setTextColor(100);doc.text("Software cost is more than the invoice, or the invoice is yet to be sent.",mg,y+8);doc.setTextColor(0);y+=20;
+ groups(d.loss).forEach(g=>{y=band(EN(g.e)+"   |   "+cl(g.rows.length),y);
+  at({startY:y,head:[["Client","Invoice","Software cost","Loss","Status"]],body:[...g.rows.map(r=>[r.n,r.inv?$2(r.inv):"-",$2(r.cost),$2(r.net),d.st(r)]),sub(["Subtotal - "+g.e,$2(sum(g.rows,"inv")),$2(sum(g.rows,"cost")),$2(sum(g.rows,"net")),""])]},[1,2,3],[0,95,100,100,150],[3]);
+  y=doc.lastAutoTable.finalY+16});
+ if(!d.loss.length){doc.text("None",mg,y)}else{doc.setFontSize(10);doc.setFont("helvetica","bold");doc.text("Total: "+cl(d.loss.length)+"  |  Software cost "+$2(sum(d.loss,"cost"))+"  |  Loss "+$2(sum(d.loss,"net")),mg,y+4)}
+ // 3. Above threshold, entity wise
+ doc.addPage();y=sec("Clients above "+P(d.TH)+" cost of invoice - by entity",44);y+=14;
+ groups(d.hi).forEach(g=>{y=band(EN(g.e)+"   |   "+cl(g.rows.length),y);
+  const si=sum(g.rows,"inv"),sc=sum(g.rows,"cost");
+  at({startY:y,head:[["Client","Invoice","Software cost","Actual to HBS","Cost %"]],body:[...g.rows.map(r=>[r.n,$2(r.inv),$2(r.cost),$2(r.net),P(r.pct)]),sub(["Subtotal - "+g.e,$2(si),$2(sc),$2(si-sc),P(sc/si)])]},[1,2,3,4],[0,95,100,105,70],[3]);
+  y=doc.lastAutoTable.finalY+16});
+ if(!d.hi.length){doc.setFontSize(9);doc.text("No client above the threshold.",mg,y)}
+ // 4. All clients, one entity per page
+ const HEADS=["Client","Invoice","OA","CMD","PLD","Total cost","Actual to HBS","Cost %","Status"],WD=[0,72,64,64,64,72,82,52,118],RT=[1,2,3,4,5,6,7];
+ const crow=r=>[r.n,$2(r.inv),r.oa?$2(r.oa):"-",r.cmd?$2(r.cmd):"-",r.pld?$2(r.pld):"-",$2(r.cost),$2(r.net),P(r.pct),d.st(r)];
+ const srow=(l,a)=>{const i=sum(a,"inv"),c=sum(a,"cost");return sub([l,$2(i),$2(sum(a,"oa")),$2(sum(a,"cmd")),$2(sum(a,"pld")),$2(c),$2(i-c),i?P(c/i):"-",""])};
+ groups(d.R).forEach((g,k,all)=>{doc.addPage();y=sec("All clients - by entity",40);y+=10;y=band(EN(g.e)+"   |   "+cl(g.rows.length),y);
+  const body=[...g.rows.map(crow),srow("Subtotal - "+g.e,g.rows)];
+  if(k==all.length-1)body.push(srow("GRAND TOTAL ("+cl(d.R.length)+")",d.R));
+  at({startY:y,head:[HEADS],body},RT,WD,[6]);
+ });
+ const n=doc.internal.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.setFont("helvetica","normal");doc.setTextColor(120);doc.text("Page "+i+" of "+n,W-mg,H-18,{align:"right"});doc.text("Software cost vs client invoice - "+cur,mg,H-18)}
+ return saveFile("Software-Cost-vs-Invoice_"+cur+".pdf",doc.output("blob"))}
+async function refresh(){const b=$e("rf"),t0=b.textContent;b.disabled=true;b.textContent="↻ Refreshing…";
+ try{if(DB){const s=await DB.collection("months").get(),n={};s.docs.forEach(d=>{if(d.exists)try{n[d.id]=unpack(d.data())}catch(e){}});setBase(n);M=n}
+  else{try{const x=localStorage.getItem("hbs_months");if(x)M=JSON.parse(x)}catch(e){}}
+  const k=Object.keys(M).sort((a,b)=>key(a)-key(b));if(!M[cur])cur=k[k.length-1]||"";draw();
+  $e("msg").innerHTML="✔ Refreshed at "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit"})+" – showing the latest saved data."}
+ catch(e){$e("msg").innerHTML='<span class="neg">Could not refresh. Check your connection and try again.</span>'}
+ b.textContent=t0;b.disabled=false}
+$e("rf").onclick=refresh;
+$e("xl").onclick=()=>{if(M[cur])toXlsx()};$e("pf").onclick=()=>{if(M[cur])toPdf()};
+
+if(document.addEventListener)document.addEventListener("wheel",()=>{const a=document.activeElement;if(a&&a.type=="number")a.blur()},{passive:true});
+init();
+})();
+</script></body></html>
